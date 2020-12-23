@@ -76,6 +76,16 @@
               autocomplete="off"
             />
 
+            <label>Nome do evento (do web socket)</label>
+            <input
+              type="text"
+              v-model="eventName"
+              id="message-box"
+              class="form-control"
+              placeholder="Coloque aqui o nome do evento do seu websocket"
+              autocomplete="off"
+            />
+
             <label>JWTTOKEN</label>
             <input
               type="text"
@@ -142,6 +152,7 @@
         newMessage: "",
         messages: [],
         ready: false,
+        eventName: "listUpdate",
         token: "",
         btnText: "MANDAR",
       };
@@ -172,14 +183,9 @@
         .configureLogging(signalR.LogLevel.Information)
         .build();
 
-      connection.on("listUpdate", (value) => {
+      connection.on(data.eventName, (value) => {
         console.log(value);
-        newMessage("listUpdate", JSON.stringify(value));
-      });
-
-      connection.on("teste", (value) => {
-        console.log(value);
-        newMessage("teste", JSON.stringify(value));
+        newMessage(data.eventName, JSON.stringify(value));
       });
 
       connection.onclose(() => console.log("disconnected"));
