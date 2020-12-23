@@ -1,9 +1,12 @@
 ## Aplicação para testar websocket criado com SIGNALR com Azure Functions
-
 Aplicação que recebe a rota de conexão do SignalR e uma rota post.
+Possui um campo de texto para enviar o corpo da requisição e ao lado as atualizações do websocket.
 
-Um campo de texto para enviar o corpo da requisição e ao lado
-as atualizações do websocket.
+### Passos para rodar aplicação
+1. `npm i`
+2. `npm start`
+3. Abrir aplicação no browser em `localhost:3000`
+4. Será pedido a url base da sua api para começar a conexão do websocket
 
 Essa aplicação se baseia [no seguinte arquivo](https://github.com/Azure-Samples/signalr-service-quickstart-serverless-chat/blob/master/docs/demo/chat-v2/index.html) utilizado na [documentação do SignalR com Azure Functions](https://docs.microsoft.com/en-us/azure/azure-signalr/signalr-quickstart-azure-functions-javascript#clone-the-sample-application_). Também baseado [neste gist](https://gist.github.com/thecopy/5874375).
 
