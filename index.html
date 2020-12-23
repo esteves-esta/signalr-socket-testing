@@ -23,13 +23,29 @@
       code {
         color: #444;
       }
+
+      #message-box {
+        margin-bottom: 10px;
+      }
+
+      h4 {
+        font-weight: bold;
+        margin-bottom: 15px;
+      }
+
+      label {
+        font-weight: bold;
+        font-size: 0.9em;
+        letter-spacing: 1px;
+        margin-top: 0.8rem;
+      }
     </style>
   </head>
 
   <body>
     <p>&nbsp;</p>
     <div id="app" class="container">
-      <h3>TESTANDO WEBSOCKET COM SIGNALR</h3>
+      <h4>TESTANDO WEBSOCKET COM SIGNALR</h4>
 
       <div class="row" v-if="!ready">
         <div class="col-sm">
@@ -43,9 +59,6 @@
             <p class="text-info small">
               Rota de conexão: <strong>{{ urlConnection }}</strong>
             </p>
-            <p class="text-info small">
-              Rota para o post: <strong>{{ urlPost }}</strong>
-            </p>
           </div>
         </div>
       </div>
@@ -53,6 +66,27 @@
       <div class="row" v-if="ready">
         <div class="col">
           <form v-on:submit.prevent="sendNewMessage">
+            <label>URI POST</label>
+            <input
+              type="text"
+              v-model="urlPost"
+              id="message-box"
+              class="form-control"
+              placeholder="Coloque aqui a URI da sua rota POST"
+              autocomplete="off"
+            />
+
+            <label>JWTTOKEN</label>
+            <input
+              type="text"
+              v-model="token"
+              id="message-box"
+              class="form-control"
+              placeholder="Cole aqui o JWTTOKEN para a requisição"
+              autocomplete="off"
+            />
+
+            <label>CORPO DA REQUISIÇÃO</label>
             <textarea
               rows="10"
               type="text"
@@ -81,6 +115,9 @@
                 <div class="col-sm">
                   <div>
                     <div>
+                      <p class="text-info small">
+                        EVENTO: <strong>{{ message.eventName }}</strong>
+                      </p>
                       <code> {{ message.text }} </code>
                     </div>
                   </div>
@@ -101,10 +138,11 @@
       const data = {
         username: "",
         urlConnection: "",
-        urlPost: "",
+        urlPost: `${window.apiBaseUrl}/api/web/turnlist/onservice`,
         newMessage: "",
         messages: [],
         ready: false,
+        token: "",
         btnText: "MANDAR",
       };
 
@@ -118,7 +156,6 @@
             console.log("resultado da requisição");
             console.log(result);
             this.btnText = result.status === 200 ? "MANDAR" : "MANDAR DENOVO";
-            this.newMessage = "";
           },
         },
       });
@@ -127,13 +164,8 @@
         "Enter the Azure Function app base URL",
         window.apiBaseUrl + "/api/web/turnlist"
       );
-      const postRoute = prompt(
-        "Enter the post route",
-        `${window.apiBaseUrl}/api/web/turnlist/onservice`
-      );
 
       data.urlConnection = apiBaseUrl;
-      data.urlPost = postRoute;
 
       const connection = new signalR.HubConnectionBuilder()
         .withUrl(`${apiBaseUrl}`)
@@ -142,25 +174,37 @@
 
       connection.on("listUpdate", (value) => {
         console.log(value);
-        newMessage(JSON.stringify(value));
+        newMessage("listUpdate", JSON.stringify(value));
+      });
+
+      connection.on("teste", (value) => {
+        console.log(value);
+        newMessage("teste", JSON.stringify(value));
       });
 
       connection.onclose(() => console.log("disconnected"));
 
       console.log("connecting...");
+
       connection
         .start()
         .then(() => (data.ready = true))
         .catch(console.error);
 
       async function sendMessage(body) {
-        const status = await axios.post(postRoute, body);
-        return status;
+        try {
+          const status = await axios.post(data.urlPost, body, {
+            headers: { Authorization: `Bearer ${data.token}` },
+          });
+          return status;
+        } catch (e) {
+          return e;
+        }
       }
 
       let counter = 0;
-      function newMessage(message) {
-        let msg = { text: message };
+      function newMessage(eventName, message) {
+        let msg = { eventName: eventName, text: message };
         msg.id = counter++; // vue transitions need an id
         data.messages.unshift(msg);
       }
